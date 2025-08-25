@@ -1,0 +1,33 @@
+# System files
+DS_Store
+Thumbs.db
+
+# IDE files (VSCode, PyCharm)
+.vscode/
+.idea/
+*.pyc
+__pycache__/
+
+# Python-specific files
+*.py[cod]
+*$py.class
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.mypy_cache/
+.pytest_cache/
+
+# Artifacts of the build process
+dist/
+build/
+
+# Test reports and logs
+*.log
+*.sqlite3
+*.bak
+/docs
+docs.sh

@@ -1,0 +1,40 @@
+services:
+  omniverse:
+    image: go2move:25.08.25
+    privileged: true
+    runtime: nvidia
+    build:
+      context: .
+      shm_size: "20gb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    shm_size: "20gb"
+    environment:
+      NVIDIA_DRIVER_CAPABILITIES: all
+      NVIDIA_VISIBLE_DEVICES: all
+      DISPLAY: $DISPLAY
+      ACCEPT_EULA: Y
+      PRIVACY_CONSENT: Y
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - ~/docker_lab/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
+      - ~/docker_lab/isaac-sim/cache/ov:/root/.cache/ov:rw
+      - ~/docker_lab/isaac-sim/cache/pip:/root/.cache/pip:rw
+      - ~/docker_lab/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
+      - ~/docker_lab/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
+      - ~/docker_lab/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
+      - ~/docker_lab/isaac-sim/data:/root/.local/share/ov/data:rw
+      - ~/docker_lab/isaac-sim/documents:/root/Documents:rw
+      - ~/docker_lab/isaac-sim/code:/isaac-sim/code:rw
+      - ~/docker_lab/isaac-sim/code:/workspace/isaaclab/code:rw      
+      - ~/docker_lab/isaac-sim/captures:/isaac-sim/captures:rw
+    restart: "no"
+    stdin_open: true
+    tty: true
+    network_mode: host
