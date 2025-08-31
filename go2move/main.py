@@ -76,8 +76,9 @@ class UnitreeGo2RoughDemo:
         env_config.scene.num_envs = 1
         env_config.episode_length_s = 1000000
         env_config.curriculum = None
-        env_config.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
-        env_config.commands.base_velocity.ranges.heading = (-1.0, 1.0)
+        env_config.commands.base_velocity.ranges.lin_vel_x = (0.0, 0.0)
+        env_config.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        # env_config.commands.base_velocity.ranges.heading = (-1.0, 1.0)
 
         self.environment = RslRlVecEnvWrapper(ManagerBasedRLEnv(cfg=env_config))
         self.device = self.environment.unwrapped.device
