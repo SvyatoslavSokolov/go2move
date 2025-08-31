@@ -8,7 +8,6 @@ import time
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
 import scripts.reinforcement_learning.rsl_rl.cli_args as cli_args  # isort: skip
 
-
 from isaaclab.app import AppLauncher
 
 # add argparse arguments
@@ -28,7 +27,6 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 import torch
-
 import carb
 import omni
 from isaacsim.core.utils.stage import get_current_stage
@@ -52,13 +50,17 @@ TASK = "Isaac-Velocity-Rough-Unitree-Go2-v0"
 RL_LIBRARY = "rsl_rl"
 
 import omni.ui as ui
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
 
-from controller import KeyboardController, KeyboardControllerGUI
+# Import your updated controller classes
+from controller import KeyboardController, KeyboardControllerGUI, ROS2KeyboardBridge
 
 
 class UnitreeGo2RoughDemo:
     """
-    Класс для демонстрации управления роботом Unitree Go2 в сложной местности.
+    Класс для управления роботом Unitree Go2.
     """
 
     def __init__(self, command_queue: queue.Queue):
@@ -153,9 +155,6 @@ class UnitreeGo2RoughDemo:
             camera_state.set_target_world(target, True)
 
 
-# ---
-## Основная логика симуляции и многопоточность
-
 def keyboard_thread_func(command_queue: queue.Queue, device: torch.device):
     """
     Функция, которая выполняется в отдельном потоке для обработки ввода с клавиатуры
@@ -163,12 +162,23 @@ def keyboard_thread_func(command_queue: queue.Queue, device: torch.device):
     """
     controller = KeyboardController(command_queue, device)
     gui = KeyboardControllerGUI(controller)
+    
+    # Инициализация ROS 2 моста
+    rclpy.init()
+    ros_bridge = ROS2KeyboardBridge(command_queue, device)
+    executor = rclpy.executors.SingleThreadedExecutor()
+    executor.add_node(ros_bridge)
 
     while simulation_app.is_running() and controller.is_running:
         # Обновляем GUI в каждом цикле
-        gui.update_buttons()
+        gui._update_labels()
+        executor.spin_once(timeout_sec=0.01)
         time.sleep(0.01)
+    
+    # Завершение работы
     controller.shutdown()
+    ros_bridge.destroy_node()
+    rclpy.shutdown()
 
 
 def main():
@@ -177,8 +187,10 @@ def main():
     demo_go2 = UnitreeGo2RoughDemo(command_queue)
     obs, _ = demo_go2.environment.reset()
 
-    keyboard_thread = threading.Thread(target=keyboard_thread_func, args=(command_queue,
-                                                                         demo_go2.device))
+    keyboard_thread = threading.Thread(
+        target=keyboard_thread_func, 
+        args=(command_queue, demo_go2.device)
+    )
     keyboard_thread.daemon = True
     keyboard_thread.start()
 
@@ -197,7 +209,6 @@ def main():
                 obs[:, 9:13] = demo_go2.commands
 
             action = demo_go2.policy(obs)
-
             obs, _, _, _ = demo_go2.environment.step(action)
 
 

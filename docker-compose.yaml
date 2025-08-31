@@ -1,6 +1,6 @@
 services:
   omniverse:
-    image: go2move:25.08.25
+    image: go2move:30.08.30
     privileged: true
     runtime: nvidia
     build:
